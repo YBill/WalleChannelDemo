@@ -1,0 +1,90 @@
+apply plugin: 'com.android.application'
+apply plugin: 'walle'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+    defaultConfig {
+        applicationId "com.example.bill.wallechanneldemo"
+        minSdkVersion 15
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        release {
+            keyAlias KEY_ALIAS
+            keyPassword KEY_PASSWORD
+            storeFile rootProject.file(KEYSTORE_FILE)
+            storePassword KEYSTORE_PASSWORD
+        }
+    }
+
+    buildTypes {
+        //调试版本，无混淆
+        debug {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+        //发布版本，有混淆
+        release {
+            minifyEnabled true
+            zipAlignEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // 存在productFlavors时 gradlew clean assemble${FlaverName}ReleaseChannels
+    // 比如打productFlavors中mrelease用：gradlew clean assembleMreleaseReleaseChannels     -PchannelList=baidu,huawei
+    // 不存在productFlavors时 gradlew clean assemble${variantName}Channels
+    // 比如打正式包用：gradlew clean assembleReleaseChannels          -PchannelList=baidu,huawei
+    productFlavors {
+        mdebug {
+            buildConfigField "int", "ENV_TYPE", "1"
+            applicationId 'com.example.bill.wallechanneldemo.debug'
+            manifestPlaceholders = [
+                    app_name: "Walle Debug",
+                    app_icon: "@mipmap/icon_debug"
+            ]
+        }
+        mtest {
+            buildConfigField "int", "ENV_TYPE", "2"
+            applicationId 'com.example.bill.wallechanneldemo.test'
+            manifestPlaceholders = [
+                    app_name: "Walle Test",
+                    app_icon: "@mipmap/icon_test"
+            ]
+        }
+        mrelease {
+            buildConfigField "int", "ENV_TYPE", "3"
+            applicationId 'com.example.bill.wallechanneldemo'
+            manifestPlaceholders = [
+                    app_name: "Walle Release",
+                    app_icon: "@mipmap/icon_release"
+            ]
+        }
+    }
+
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    testCompile 'junit:junit:4.12'
+    compile 'com.meituan.android.walle:library:1.1.3'
+}
+
+walle {
+    apkOutputFolder = new File("${project.buildDir}/outputs/channels")
+    apkFileNameFormat = '${appName}-${packageName}-${channel}-${buildType}-v${versionName}-${versionCode}-${buildTime}-${flavorName}.apk'
+    //configFile与channelFile两者必须存在一个，否则无法生成渠道包。两者都存在时优先执行configFile
+    channelFile = new File("${project.getProjectDir()}/channel")
+    //configFile = new File("${project.getProjectDir()}/config.json")
+}
