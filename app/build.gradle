@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-apply plugin: 'walle'
+//apply plugin: 'walle' // 注1
 
 android {
     compileSdkVersion 25
@@ -81,10 +81,13 @@ dependencies {
     compile 'com.meituan.android.walle:library:1.1.3'
 }
 
-walle {
+/*walle {
     apkOutputFolder = new File("${project.buildDir}/outputs/channels")
     apkFileNameFormat = '${appName}-${packageName}-${channel}-${buildType}-v${versionName}-${versionCode}-${buildTime}-${flavorName}.apk'
     //configFile与channelFile两者必须存在一个，否则无法生成渠道包。两者都存在时优先执行configFile
     channelFile = new File("${project.getProjectDir()}/channel")
     //configFile = new File("${project.getProjectDir()}/config.json")
-}
+}*/ // 注1
+
+// // 注1：方式一 通过gradlew clean assemble打包
+// 方式二： 不需要注1的，生成apk后通过java -jar walle-cli-all.jar put -c meituan app.apk 写入渠道
